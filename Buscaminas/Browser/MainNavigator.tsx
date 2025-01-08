@@ -12,7 +12,7 @@ const Top = createMaterialTopTabNavigator();
 
 function MyTops(){
     return(
-        <Top.Navigator initialRouteName="Guardar">
+        <Top.Navigator initialRouteName="Login">
             <Top.Screen name="Login" component={LoginScreens}/>
             <Top.Screen name="Registro" component={RegistroScreen}/>
             <Top.Screen name="Juegar" component={BuscaminasScrenns}/>
