@@ -1,29 +1,32 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import BuscaminasScrenns from '../Screens/BuscaminasScrenns'
-import LoginScreens from '../Screens/LoginScreens'
-import RegistroScreens from '../Screens/RegistroScreens'
-import ScoreScreen from '../Screens/ScoreScreen'
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { NavigationContainer } from "@react-navigation/native";
+import LoginScreens from "../Screens/LoginScreens";
+import RegistroScreen from "../Screens/RegistroScreens";
+import BuscaminasScrenns from '../Screens/BuscaminasScrenns';
+import ScoreScreen from "../Screens/ScoreScreen";
+import CreditosScrenn from "../Screens/CreditosScrenn";
 
-const top= createMaterialTopTabNavigator();
+
+
+const Top = createMaterialTopTabNavigator();
 
 function MyTops(){
-return(
-<top.Navigator>
-<top.Screen name="Welcome" component={BuscaminasScrenns}/>
-<top.Screen name="Guardar" component={LoginScreens}/>
-<top.Screen name="leer" component={RegistroScreens}/>
-<top.Screen name="editar" component={ScoreScreen}/>
-</top.Navigator>
-);
+    return(
+        <Top.Navigator initialRouteName="Guardar">
+            <Top.Screen name="Login" component={LoginScreens}/>
+            <Top.Screen name="Registro" component={RegistroScreen}/>
+            <Top.Screen name="Juegar" component={BuscaminasScrenns}/>
+            <Top.Screen name="Score" component={ScoreScreen}/>
+            <Top.Screen name="Creditos" component={CreditosScrenn}/>
+        </Top.Navigator>
 
+    );
 }
 
-export default function MainNavigator() {
-  return (
-    <MyTops/>
-  )
+export default function MainNavigador(){
+    return(
+        <NavigationContainer>
+            <MyTops/>
+        </NavigationContainer>
+    )
 }
-
-const styles = StyleSheet.create({})

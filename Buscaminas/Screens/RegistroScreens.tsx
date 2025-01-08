@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
  import { getDatabase, ref, set } from "firebase/database";
  import { db } from '../config/Config';
 
-export default function FormularioScreen() {
+export default function RegistroScreen() {
 
     const [cedula, setcedula] = useState('')
     const [nombre, setnombre] = useState('')
