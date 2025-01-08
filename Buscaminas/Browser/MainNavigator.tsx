@@ -5,17 +5,25 @@ import RegistroScreen from "../Screens/RegistroScreens";
 import BuscaminasScrenns from '../Screens/BuscaminasScrenns';
 import ScoreScreen from "../Screens/ScoreScreen";
 import CreditosScrenn from "../Screens/CreditosScrenn";
+import { createStackNavigator } from "@react-navigation/stack";
 
 
+
+
+export type RootStackParams = {
+    Login: undefined;
+    Botton: undefined; 
+    Registro: undefined;
+    Juego: undefined;
+  };
+  
 
 const Top = createMaterialTopTabNavigator();
 
 function MyTops(){
     return(
-        <Top.Navigator initialRouteName="Login">
-            <Top.Screen name="Login" component={LoginScreens}/>
-            <Top.Screen name="Registro" component={RegistroScreen}/>
-            <Top.Screen name="Juegar" component={BuscaminasScrenns}/>
+        <Top.Navigator >
+            <Top.Screen name="Jugar" component={BuscaminasScrenns}/>
             <Top.Screen name="Score" component={ScoreScreen}/>
             <Top.Screen name="Creditos" component={CreditosScrenn}/>
         </Top.Navigator>
@@ -23,10 +31,28 @@ function MyTops(){
     );
 }
 
+
+//////////
+
+const Stack = createStackNavigator();
+function MyStack(){
+    return(
+<Stack.Navigator screenOptions={()=> ({headerShown: false}) }>
+    <Stack.Screen name = 'Login' component={LoginScreens}/>
+
+<Stack.Screen name ='Botton' component={RegistroScreen}/>
+<Stack.Screen name ='Juego' component={BuscaminasScrenns}/>
+</Stack.Navigator>
+    );
+}
+
+//////
+
+
 export default function MainNavigador(){
     return(
         <NavigationContainer>
-            <MyTops/>
+            <MyStack/>
         </NavigationContainer>
     )
 }
