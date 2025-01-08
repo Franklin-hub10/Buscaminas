@@ -2,9 +2,14 @@ import { Button, Keyboard, StyleSheet, Text, TextInput, View, TouchableOpacity }
 import React, { useEffect, useState } from 'react'
 import { ref, set } from "firebase/database";
 import { db } from '../config/Config';
+<<<<<<< HEAD
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParams } from '../Browser/BottomNavigator';
 
+=======
+ 
+ 
+>>>>>>> 8faeaad3bae6b7c8b9e992543c78edc9874dd9f2
  
 export default function LoginScreen() {
  
