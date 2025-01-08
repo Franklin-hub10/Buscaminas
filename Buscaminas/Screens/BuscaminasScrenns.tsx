@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Cell {
   isMine: boolean;
@@ -98,6 +99,7 @@ const BuscaminasScreens: React.FC = () => {
   };
 
   return (
+    <SafeAreaView style={{ marginTop: '5%', flex: 1, backgroundColor: '#f0f0f0' }}>
     <View style={styles.container}>
       <Text style={styles.title}>Buscaminas</Text>
       <Text style={styles.score}>Puntaje: {score}</Text>
@@ -121,50 +123,59 @@ const BuscaminasScreens: React.FC = () => {
         ))}
       </View>
     </View>
+  </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#282c34',
+    backgroundColor: '#f0f0f0', // Fondo claro para consistencia con otros estilos
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    paddingHorizontal: 20, // Ajuste para evitar bordes pegados
   },
   title: {
-    fontSize: 24,
-    color: '#ffffff',
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4CAF50', // Verde consistente
     marginBottom: 10,
   },
   score: {
-    fontSize: 18,
-    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#333333', // Gris oscuro
     marginBottom: 20,
   },
   board: {
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: '#4CAF50', // Verde consistente
+    backgroundColor: '#ffffff', // Fondo blanco
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
   },
   cell: {
-    width: 30,
-    height: 30,
-    backgroundColor: '#3b3b3b',
+    width: 40, // Tamaño más grande para mejor visibilidad
+    height: 40,
+    backgroundColor: '#e0e0e0',
     borderWidth: 1,
-    borderColor: '#ffffff',
+    borderColor: '#cccccc',
     alignItems: 'center',
     justifyContent: 'center',
   },
   revealedCell: {
     backgroundColor: '#bdbdbd',
+    borderColor: '#aaaaaa',
   },
   cellText: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
   },
 });
+
 
 export default BuscaminasScreens;
