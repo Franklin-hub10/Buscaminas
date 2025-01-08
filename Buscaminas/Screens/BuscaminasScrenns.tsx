@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-export default function BuscaminasScrenns() {
-
-
-
 interface Cell {
   isMine: boolean;
   revealed: boolean;
   neighboringMines: number;
 }
 
+// Función para generar el tablero
 const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
   const board: Cell[][] = Array(rows)
     .fill(null)
@@ -22,7 +19,7 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
       })
     );
 
-  // Add mines randomly
+  // Añadir minas al azar
   let minesPlaced = 0;
   while (minesPlaced < mines) {
     const row = Math.floor(Math.random() * rows);
@@ -34,7 +31,7 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
     }
   }
 
-  // Calculate neighboring mines
+  // Calcular minas vecinas
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (!board[r][c].isMine) {
@@ -56,7 +53,8 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
   return board;
 };
 
-const Jugar: React.FC = () => {
+// Componente principal
+const BuscaminasScreens: React.FC = () => {
   const [board, setBoard] = useState<Cell[][]>([]);
   const [score, setScore] = useState(0);
   const rows = 8;
@@ -83,7 +81,7 @@ const Jugar: React.FC = () => {
     cell.revealed = true;
     setScore(score + 1);
 
-    // Reveal neighboring cells if no mines around
+    // Descubrir celdas vecinas si no hay minas alrededor
     if (cell.neighboringMines === 0) {
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
@@ -132,6 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#282c34',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 10,
   },
   title: {
     fontSize: 24,
@@ -168,4 +167,4 @@ const styles = StyleSheet.create({
   },
 });
 
-}
+export default BuscaminasScreens;
