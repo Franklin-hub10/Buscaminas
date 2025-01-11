@@ -2,8 +2,12 @@ import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } fr
 import React, { useEffect, useState } from 'react';
 import { child, get, ref } from "firebase/database";
 import { db } from '../config/Config';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParams } from '../Browser/MainNavigator'; // Ajusta la ruta según tu proyecto
+
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParams } from '../Browser/MainNavigator';
+
+ 
+
 
 export default function LoginScreen() {
     const navigation = useNavigation<NavigationProp<RootStackParams>>();
