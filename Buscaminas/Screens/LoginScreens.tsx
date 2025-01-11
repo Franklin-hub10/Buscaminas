@@ -6,8 +6,8 @@ import { auth } from '../config/Config';
 export default function LoginScreen({ navigation }: any) {
     const [correo, setcorreo] = useState('');
     const [contrasenia, setContrasenia] = useState('');
-    const [ver, setver] = useState(false)
-    const [correoRestablecer, setcorreoRestablecer] = useState('')
+    const [ver, setver] = useState(false);
+    const [correoRestablecer, setcorreoRestablecer] = useState('');
 
     function login() {
         signInWithEmailAndPassword(auth, correo, contrasenia)
@@ -18,40 +18,38 @@ export default function LoginScreen({ navigation }: any) {
             })
             .catch((error) => {
                 const errorCode = error.code;
-                const errorMessage = error.message;
                 let titulo;
                 let mensaje;
 
-                if (errorCode === 'auth/wrong-password') {
-                    titulo = 'Error en la contraseña';
-                    mensaje = 'Contraseña incorrecta. Por favor, verifica los datos ingresados.';
-                } else if (errorCode === 'auth/user-not-found') {
-                    titulo = 'Usuario no encontrado';
-                    mensaje = 'Por favor verifica el email ingresado.';
-                } else {
-                    titulo = 'Error';
-                    mensaje = 'Verifica tus credenciales.';
+                switch (errorCode) {
+                    case 'auth/wrong-password':
+                        titulo = 'Error en la contraseña';
+                        mensaje = 'Contraseña incorrecta. Por favor, verifica los datos ingresados.';
+                        break;
+                    case 'auth/user-not-found':
+                        titulo = 'Usuario no encontrado';
+                        mensaje = 'Por favor verifica el email ingresado.';
+                        break;
+                    default:
+                        titulo = 'Error';
+                        mensaje = 'Verifica tus credenciales.';
                 }
 
                 Alert.alert(titulo, mensaje);
             });
     }
 
-    function restablecer(){
+    function restablecer() {
         const auth = getAuth();
-sendPasswordResetEmail(auth, correoRestablecer)
-  .then(() => {
-    // Password reset email sent!
-    // ..
-    Alert.alert('mensaje' , 'se a enviado correo ')
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // ..
-    Alert.alert(errorCode, errorMessage)
-  });
-
+        sendPasswordResetEmail(auth, correoRestablecer)
+            .then(() => {
+                Alert.alert('Mensaje', 'Se ha enviado un correo para restablecer tu contraseña');
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                Alert.alert(errorCode, errorMessage);
+            });
     }
 
     return (
@@ -77,28 +75,34 @@ sendPasswordResetEmail(auth, correoRestablecer)
             />
 
             <TouchableOpacity style={styles.button} onPress={login}>
-                <Text style={styles.buttonText}>Iniciar Sesión</Text>
+                <Text style={styles.buttonText}>Ingresar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
                 <Text style={styles.registerText}>¿No tienes una cuenta? Regístrate aquí</Text>
             </TouchableOpacity>
 
-            
-            <TouchableOpacity onPress={() => setver (!ver)} >
-                <Text style={styles.registerText }>olvido la contrasenia. da click aqui</Text>
+            <TouchableOpacity onPress={() => setver(!ver)}>
+                <Text style={styles.forgotPasswordText}>¿Olvidaste la contraseña? Click aquí</Text>
             </TouchableOpacity>
 
-            <Modal visible= {ver} transparent={false}>
-                <View>
-                    <TextInput  style={styles.input}
-                    placeholder='ingresar correo'
-                    onChangeText={(texto)=> setcorreoRestablecer}
-                    />
-                    <Button  title='enviar' onPress={()=> restablecer ()} />
-                    <Button title='cerrar' onPress={()=> setver(!ver)} color={'red'}/>
+            <Modal visible={ver} transparent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ingresa tu correo"
+                            placeholderTextColor="#aaa"
+                            onChangeText={(texto) => setcorreoRestablecer(texto)}
+                        />
+                        <TouchableOpacity style={styles.modalButton} onPress={restablecer}>
+                            <Text style={styles.modalButtonText}>Enviar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.closeModalButton} onPress={() => setver(!ver)}>
+                            <Text style={styles.closeModalButtonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                
             </Modal>
         </View>
     );
@@ -109,35 +113,35 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#f5f5f5',
         padding: 20,
     },
     title: {
-        fontSize: 28,
+        fontSize: 30,
         fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 30,
+        color: '#2c3e50',
+        marginBottom: 25,
     },
     input: {
         height: 50,
         fontSize: 16,
         backgroundColor: '#ffffff',
         marginVertical: 10,
-        borderRadius: 8,
+        borderRadius: 12,
         paddingHorizontal: 15,
         width: '100%',
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: '#dcdde1',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
-        shadowRadius: 5,
+        shadowRadius: 3,
         elevation: 2,
     },
     button: {
         marginTop: 20,
         backgroundColor: '#4CAF50',
-        borderRadius: 8,
+        borderRadius: 12,
         width: '100%',
         height: 50,
         justifyContent: 'center',
@@ -152,11 +156,67 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#ffffff',
+        textTransform: 'uppercase',
     },
     registerText: {
         marginTop: 15,
         fontSize: 16,
         color: '#4CAF50',
         textDecorationLine: 'underline',
+    },
+    forgotPasswordText: {
+        marginTop: 15,
+        fontSize: 16,
+        color: '#34495e',
+        textDecorationLine: 'underline',
+        opacity: 0.85,
+        fontStyle: 'italic',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: 15,
+        padding: 20,
+        width: '90%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    modalButton: {
+        marginTop: 15,
+        backgroundColor: '#2ecc71',
+        borderRadius: 12,
+        width: '100%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        textTransform: 'uppercase',
+    },
+    closeModalButton: {
+        marginTop: 10,
+        backgroundColor: '#e74c3c',
+        borderRadius: 12,
+        width: '100%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeModalButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        textTransform: 'uppercase',
     },
 });

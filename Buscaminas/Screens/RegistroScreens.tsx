@@ -12,7 +12,7 @@ export default function RegistroScreen({ navigation }: any) {
         createUserWithEmailAndPassword(auth, correo, contrasenia)
             .then((userCredential) => {
                 Alert.alert('Registro Exitoso', '¡Usuario registrado correctamente!');
-                navigation.navigate('Welcome');
+                navigation.navigate('Juego');
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -63,7 +63,7 @@ export default function RegistroScreen({ navigation }: any) {
                 <Text style={styles.buttonText}>Registrar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Loging')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.registerText}>¿Ya tienes una cuenta? Inicia sesión aquí</Text>
             </TouchableOpacity>
         </View>
