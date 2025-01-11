@@ -4,12 +4,16 @@ import React, { useEffect, useState } from 'react'
 //FIREBASE
 import { getDatabase, ref, set } from "firebase/database";
 import { db } from '../config/Config';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParams } from '../Browser/MainNavigator';
 
 export default function RegistroScreen() {
     const [cedula, setcedula] = useState('')
     const [nombre, setnombre] = useState('')
     const [correo, setcorreo] = useState('')
     const [password, setPassword] = useState('')
+
+    const navigation = useNavigation<NavigationProp<RootStackParams>>();
 
     // GUARDAR
     function guardar() {
@@ -18,7 +22,8 @@ export default function RegistroScreen() {
             email: correo,
             password: password 
         });
-        limpiar()
+        limpiar();
+        navigation.navigate('Login');
     }
 
     function limpiar() {
