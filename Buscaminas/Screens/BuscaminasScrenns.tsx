@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ref, push } from "firebase/database";
+import { db } from '../config/Config'; // Asegúrate de que la ruta sea correcta
 
 interface Cell {
   isMine: boolean;
@@ -61,11 +63,19 @@ const BuscaminasScreens: React.FC = () => {
   const rows = 8;
   const cols = 8;
   const mines = 10;
+  const userId = "123456"; // Sustituir con el ID del usuario logueado
 
   useEffect(() => {
     setBoard(generateBoard(rows, cols, mines));
   }, []);
 
+  // Función para guardar el puntaje en Firebase
+  const saveScore = (finalScore: number) => {
+    const scoreRef = ref(db, `scores/${userId}`);
+    push(scoreRef, { score: finalScore, date: new Date().toISOString() });
+  };
+
+  // Función para revelar una celda
   const revealCell = (row: number, col: number) => {
     const newBoard = [...board];
     const cell = newBoard[row][col];
@@ -73,6 +83,7 @@ const BuscaminasScreens: React.FC = () => {
     if (cell.revealed) return;
 
     if (cell.isMine) {
+      saveScore(score); // Guardar el puntaje antes de reiniciar
       Alert.alert('¡Perdiste!', `Tu puntaje final fue ${score}`);
       setBoard(generateBoard(rows, cols, mines));
       setScore(0);
@@ -100,57 +111,57 @@ const BuscaminasScreens: React.FC = () => {
 
   return (
     <SafeAreaView style={{ marginTop: '5%', flex: 1, backgroundColor: '#f0f0f0' }}>
-    <View style={styles.container}>
-      <Text style={styles.title}>Buscaminas</Text>
-      <Text style={styles.score}>Puntaje: {score}</Text>
-      <View style={styles.board}>
-        {board.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((cell, colIndex) => (
-              <TouchableOpacity
-                key={colIndex}
-                style={[styles.cell, cell.revealed && styles.revealedCell]}
-                onPress={() => revealCell(rowIndex, colIndex)}
-              >
-                {cell.revealed && (
-                  <Text style={styles.cellText}>
-                    {cell.isMine ? '💣' : cell.neighboringMines > 0 ? cell.neighboringMines : ''}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
+      <View style={styles.container}>
+        <Text style={styles.title}>Buscaminas</Text>
+        <Text style={styles.score}>Puntaje: {score}</Text>
+        <View style={styles.board}>
+          {board.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.row}>
+              {row.map((cell, colIndex) => (
+                <TouchableOpacity
+                  key={colIndex}
+                  style={[styles.cell, cell.revealed && styles.revealedCell]}
+                  onPress={() => revealCell(rowIndex, colIndex)}
+                >
+                  {cell.revealed && (
+                    <Text style={styles.cellText}>
+                      {cell.isMine ? '💣' : cell.neighboringMines > 0 ? cell.neighboringMines : ''}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+        </View>
       </View>
-    </View>
-  </SafeAreaView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // Fondo claro para consistencia con otros estilos
+    backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20, // Ajuste para evitar bordes pegados
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#4CAF50', // Verde consistente
+    color: '#4CAF50',
     marginBottom: 10,
   },
   score: {
     fontSize: 20,
     fontWeight: '500',
-    color: '#333333', // Gris oscuro
+    color: '#333333',
     marginBottom: 20,
   },
   board: {
     borderWidth: 2,
-    borderColor: '#4CAF50', // Verde consistente
-    backgroundColor: '#ffffff', // Fondo blanco
+    borderColor: '#4CAF50',
+    backgroundColor: '#ffffff',
     borderRadius: 10,
     overflow: 'hidden',
   },
@@ -158,7 +169,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cell: {
-    width: 40, // Tamaño más grande para mejor visibilidad
+    width: 40,
     height: 40,
     backgroundColor: '#e0e0e0',
     borderWidth: 1,
@@ -176,6 +187,5 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
 });
-
 
 export default BuscaminasScreens;

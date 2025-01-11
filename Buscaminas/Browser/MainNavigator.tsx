@@ -7,6 +7,7 @@ import ScoreScreen from "../Screens/ScoreScreen";
 import CreditosScrenn from "../Screens/CreditosScrenn";
 import { createStackNavigator } from "@react-navigation/stack";
 import { View } from "react-native";
+import PerfilScreen from "../Screens/PerfilScreen";
 
 
 
@@ -24,11 +25,11 @@ const Top = createMaterialTopTabNavigator();
 function MyTops() {
     return (
         <View style={{ marginTop: '10%', flex: 1, backgroundColor: '#f0f0f0' }}>
-            <Top.Navigator  >
-                <Top.Screen name="Jugar" component={BuscaminasScrenns} />
-                <Top.Screen name="Score" component={ScoreScreen} />
-                <Top.Screen name="Creditos" component={CreditosScrenn} />
-            </Top.Navigator>
+        <Top.Navigator >
+            <Top.Screen name="Jugar" component={BuscaminasScrenns}/>
+            <Top.Screen name="Score" component={ScoreScreen}/>
+            <Top.Screen name="Creditos" component={CreditosScrenn}/>
+        </Top.Navigator>
         </View>
 
     );
