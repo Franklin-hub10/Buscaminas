@@ -14,50 +14,49 @@ import PerfilScreen from "../Screens/PerfilScreen";
 
 export type RootStackParams = {
     Login: undefined;
-    Botton: undefined; 
+    Botton: undefined;
     Registro: undefined;
     Juego: undefined;
-  };
-  
+};
+
 
 const Top = createMaterialTopTabNavigator();
 
-function MyTops(){
-    return(
+function MyTops() {
+    return (
         <View style={{ marginTop: '10%', flex: 1, backgroundColor: '#f0f0f0' }}>
         <Top.Navigator >
             <Top.Screen name="Jugar" component={BuscaminasScrenns}/>
             <Top.Screen name="Score" component={ScoreScreen}/>
             <Top.Screen name="Creditos" component={CreditosScrenn}/>
-            <Top.Screen name="Perfil de usuario" component={PerfilScreen}/>
         </Top.Navigator>
         </View>
 
     );
 }
 
-
 //////////
 
 const Stack = createStackNavigator();
-function MyStack(){
-    return(
-<Stack.Navigator screenOptions={()=> ({headerShown: false}) }>
-    <Stack.Screen name = 'Login' component={LoginScreens}/>
+function MyStack() {
+    return (
+        <Stack.Navigator  screenOptions={() => ({ headerShown: false })}>
+            <Stack.Screen name='Login' component={LoginScreens} />
 
-<Stack.Screen name ='Botton' component={RegistroScreen}/>
-<Stack.Screen name ='Juego' component={MyTops}/>
-</Stack.Navigator>
+            <Stack.Screen name='Registro' component={RegistroScreen} />
+            <Stack.Screen name="Score" component={ScoreScreen} />
+            <Stack.Screen name='Juego' component={MyTops} />
+        </Stack.Navigator>
     );
 }
 
 //////
 
 
-export default function MainNavigador(){
-    return(
+export default function MainNavigador() {
+    return (
         <NavigationContainer>
-            <MyStack/>
+            <MyStack />
         </NavigationContainer>
     )
 }

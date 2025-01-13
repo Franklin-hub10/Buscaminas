@@ -1,67 +1,73 @@
-import { Button, StyleSheet, Text, TextInput, View, ScrollView } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../config/Config';
 
-//FIREBASE
-import { getDatabase, ref, set } from "firebase/database";
-import { db } from '../config/Config';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { RootStackParams } from '../Browser/MainNavigator';
+export default function RegistroScreen({ navigation }: any) {
+    const [correo, setcorreo] = useState('');
+    const [contrasenia, setContrasenia] = useState('');
 
-export default function RegistroScreen() {
-    const [cedula, setcedula] = useState('')
-    const [nombre, setnombre] = useState('')
-    const [correo, setcorreo] = useState('')
-    const [password, setPassword] = useState('')
 
-    const navigation = useNavigation<NavigationProp<RootStackParams>>();
+    function registro() {
+        createUserWithEmailAndPassword(auth, correo, contrasenia)
+            .then((userCredential) => {
+                Alert.alert('Registro Exitoso', '¡Usuario registrado correctamente!');
+                navigation.navigate('Juego');
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                let mensaje;
 
-    // GUARDAR
-    function guardar() {
-        set(ref(db, 'usuarios/' + cedula), {
-            name: nombre,
-            email: correo,
-            password: password 
-        });
-        limpiar();
-        navigation.navigate('Login');
+                if (errorCode === 'auth/email-already-in-use') {
+                    mensaje = 'El correo ya está en uso. Intenta con otro.';
+                } else if (errorCode === 'auth/weak-password') {
+                    mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+                } else {
+                    mensaje = 'Error al registrar. Verifica los datos ingresados.';
+                }
+
+                Alert.alert('Error', mensaje);
+            });
     }
-
     function limpiar() {
-        setcedula('')
-        setnombre('')
         setcorreo('')
-        setPassword('') 
+        setContrasenia('') 
     }
-
-    
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Registro</Text>
+        <View style={styles.container}>
+            <Text style={styles.title}>Crear Cuenta</Text>
+
             <TextInput
-                placeholder='Ingresar cédula'
                 style={styles.input}
-                onChangeText={(texto) => setcedula(texto)}
-                value={cedula} />
-            <TextInput
-                placeholder='Ingrese Nombre'
-                style={styles.input}
-                onChangeText={(texto) => setnombre(texto)}
-                value={nombre} />
-            <TextInput
-                placeholder='Ingrese Correo'
-                style={styles.input}
+                placeholder="Correo Electrónico"
+                placeholderTextColor="#aaa"
                 onChangeText={(texto) => setcorreo(texto)}
-                value={correo} />
+                value={correo}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                
+            />
+
             <TextInput
-                placeholder='Ingrese Contraseña'
                 style={styles.input}
-                secureTextEntry={true} 
-                onChangeText={(texto) => setPassword(texto)}
-                value={password} />
-            <Button title='Guardar' onPress={() => guardar()} />
-        </ScrollView>
-    )
+                placeholder="Contraseña"
+                placeholderTextColor="#aaa"
+                onChangeText={(texto) => setContrasenia(texto)}
+                secureTextEntry={true}
+                autoCapitalize="none"
+                value={contrasenia}
+            />
+
+            <TouchableOpacity style={styles.button} onPress={registro}>
+                <Text style={styles.buttonText}>Registrar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.registerText}>¿Ya tienes una cuenta? Inicia sesión aquí</Text>
+            </TouchableOpacity>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -69,33 +75,55 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        padding: 20
+        backgroundColor: '#f9f9f9',
+        padding: 20,
     },
     title: {
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: 'bold',
-        color: '#4CAF50',
-        marginBottom: 20,
+        color: '#333',
+        marginBottom: 30,
     },
     input: {
         height: 50,
-        fontSize: 18,
+        fontSize: 16,
         backgroundColor: '#ffffff',
         marginVertical: 10,
-        borderRadius: 10,
-        paddingHorizontal: 20,
+        borderRadius: 8,
+        paddingHorizontal: 15,
         width: '100%',
         borderWidth: 1,
-        borderColor: '#ccc'
+        borderColor: '#ddd',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 2,
     },
     button: {
         marginTop: 20,
         backgroundColor: '#4CAF50',
-        borderRadius: 10,
+        borderRadius: 8,
         width: '100%',
         height: 50,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
     },
-})
+    buttonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    registerText: {
+        marginTop: 15,
+        fontSize: 16,
+        color: '#4CAF50',
+        textDecorationLine: 'underline',
+    },
+});
+

@@ -1,80 +1,109 @@
-import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { child, get, ref } from "firebase/database";
-import { db } from '../config/Config';
+import { Alert, Button, StyleSheet, Text, TextInput, View, TouchableOpacity, Modal } from 'react-native';
+import React, { useState } from 'react';
+import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../config/Config';
 
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { RootStackParams } from '../Browser/MainNavigator';
+export default function LoginScreen({ navigation }: any) {
+    const [correo, setcorreo] = useState('');
+    const [contrasenia, setContrasenia] = useState('');
+    const [ver, setver] = useState(false);
+    const [correoRestablecer, setcorreoRestablecer] = useState('');
 
- 
+    function login() {
+        signInWithEmailAndPassword(auth, correo, contrasenia)
+            .then((userCredential) => {
+                // Signed in
+                const user = userCredential.user;
+                navigation.navigate('Juego');
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                let titulo;
+                let mensaje;
 
-
-export default function LoginScreen() {
-    const navigation = useNavigation<NavigationProp<RootStackParams>>();
-
-    const [email, setemail] = useState('');
-    const [password, setPassword] = useState('');
-
-    const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Por favor, ingrese su correo y contraseña.');
-            return;
-        }
-
-        try {
-            // Referencia a la base de datos
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, 'usuarios'));
-            if (snapshot.exists()) {
-                const usuarios = snapshot.val();
-
-                // Buscar el usuario con email y password
-                const usuarioEncontrado = Object.values(usuarios).find(
-                    (usuario: any) => usuario.email === email && usuario.password === password
-                );
-
-                if (usuarioEncontrado) {
-                    Alert.alert('Éxito', 'Inicio de sesión exitoso.');
-                    navigation.navigate('Juego'); // Redirigir a la pantalla deseada
-                } else {
-                    Alert.alert('Error', 'Correo o contraseña incorrectos.');
+                switch (errorCode) {
+                    case 'auth/wrong-password':
+                        titulo = 'Error en la contraseña';
+                        mensaje = 'Contraseña incorrecta. Por favor, verifica los datos ingresados.';
+                        break;
+                    case 'auth/user-not-found':
+                        titulo = 'Usuario no encontrado';
+                        mensaje = 'Por favor verifica el email ingresado.';
+                        break;
+                    default:
+                        titulo = 'Error';
+                        mensaje = 'Verifica tus credenciales.';
                 }
-            } else {
-                Alert.alert('Error', 'No hay usuarios registrados.');
-            }
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Hubo un problema al validar el usuario.');
-        }
-    };
+
+                Alert.alert(titulo, mensaje);
+            });
+    }
+
+    function restablecer() {
+        const auth = getAuth();
+        sendPasswordResetEmail(auth, correoRestablecer)
+            .then(() => {
+                Alert.alert('Mensaje', 'Se ha enviado un correo para restablecer tu contraseña');
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                Alert.alert(errorCode, errorMessage);
+            });
+    }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Bienvenido</Text>
+            <Text style={styles.title}>Iniciar Sesión</Text>
+
             <TextInput
                 style={styles.input}
                 placeholder="Correo Electrónico"
                 placeholderTextColor="#aaa"
-                onChangeText={setemail}
-                value={email}
+                onChangeText={(texto) => setcorreo(texto)}
                 keyboardType="email-address"
                 autoCapitalize="none"
             />
+
             <TextInput
                 style={styles.input}
                 placeholder="Contraseña"
                 placeholderTextColor="#aaa"
-                onChangeText={setPassword}
-                value={password}
+                onChangeText={(texto) => setContrasenia(texto)}
                 secureTextEntry={true}
                 autoCapitalize="none"
             />
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                <Text style={styles.buttonText}>Acceder</Text>
+
+            <TouchableOpacity style={styles.button} onPress={login}>
+                <Text style={styles.buttonText}>Ingresar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Botton')}>
-                <Text style={styles.registerText}>¿Eres nuevo? Regístrate aquí</Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+                <Text style={styles.registerText}>¿No tienes una cuenta? Regístrate aquí</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setver(!ver)}>
+                <Text style={styles.forgotPasswordText}>¿Olvidaste la contraseña? Click aquí</Text>
+            </TouchableOpacity>
+
+            <Modal visible={ver} transparent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ingresa tu correo"
+                            placeholderTextColor="#aaa"
+                            onChangeText={(texto) => setcorreoRestablecer(texto)}
+                        />
+                        <TouchableOpacity style={styles.modalButton} onPress={restablecer}>
+                            <Text style={styles.modalButtonText}>Enviar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.closeModalButton} onPress={() => setver(!ver)}>
+                            <Text style={styles.closeModalButtonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -84,44 +113,110 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#f5f5f5',
         padding: 20,
     },
     title: {
-        fontSize: 32,
+        fontSize: 30,
         fontWeight: 'bold',
-        color: '#4CAF50',
-        marginBottom: 20,
+        color: '#2c3e50',
+        marginBottom: 25,
     },
     input: {
         height: 50,
-        fontSize: 18,
+        fontSize: 16,
         backgroundColor: '#ffffff',
         marginVertical: 10,
-        borderRadius: 10,
-        paddingHorizontal: 20,
+        borderRadius: 12,
+        paddingHorizontal: 15,
         width: '100%',
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: '#dcdde1',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
     button: {
         marginTop: 20,
         backgroundColor: '#4CAF50',
-        borderRadius: 10,
+        borderRadius: 12,
         width: '100%',
         height: 50,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
     },
     buttonText: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#ffffff',
+        textTransform: 'uppercase',
     },
     registerText: {
-        marginTop: 10,
+        marginTop: 15,
         fontSize: 16,
         color: '#4CAF50',
         textDecorationLine: 'underline',
+    },
+    forgotPasswordText: {
+        marginTop: 15,
+        fontSize: 16,
+        color: '#34495e',
+        textDecorationLine: 'underline',
+        opacity: 0.85,
+        fontStyle: 'italic',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: 15,
+        padding: 20,
+        width: '90%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    modalButton: {
+        marginTop: 15,
+        backgroundColor: '#2ecc71',
+        borderRadius: 12,
+        width: '100%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        textTransform: 'uppercase',
+    },
+    closeModalButton: {
+        marginTop: 10,
+        backgroundColor: '#e74c3c',
+        borderRadius: 12,
+        width: '100%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeModalButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        textTransform: 'uppercase',
     },
 });
