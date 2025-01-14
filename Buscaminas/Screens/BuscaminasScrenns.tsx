@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ref, push } from "firebase/database";
-import { db } from '../config/Config'; // Asegúrate de que la ruta sea correcta
+import { db, auth } from "../config/Config";
 
 interface Cell {
   isMine: boolean;
@@ -10,7 +10,6 @@ interface Cell {
   neighboringMines: number;
 }
 
-// Función para generar el tablero
 const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
   const board: Cell[][] = Array(rows)
     .fill(null)
@@ -22,7 +21,6 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
       })
     );
 
-  // Añadir minas al azar
   let minesPlaced = 0;
   while (minesPlaced < mines) {
     const row = Math.floor(Math.random() * rows);
@@ -34,7 +32,6 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
     }
   }
 
-  // Calcular minas vecinas
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (!board[r][c].isMine) {
@@ -56,26 +53,28 @@ const generateBoard = (rows: number, cols: number, mines: number): Cell[][] => {
   return board;
 };
 
-// Componente principal
 const BuscaminasScreens: React.FC = () => {
   const [board, setBoard] = useState<Cell[][]>([]);
   const [score, setScore] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const rows = 8;
   const cols = 8;
   const mines = 10;
-  const userId = "123456"; // Sustituir con el ID del usuario logueado
+  const userId = auth.currentUser?.uid || "unknown"; // ID del usuario logueado
 
   useEffect(() => {
     setBoard(generateBoard(rows, cols, mines));
+    setStartTime(Date.now()); // Inicia el tiempo
   }, []);
 
-  // Función para guardar el puntaje en Firebase
   const saveScore = (finalScore: number) => {
+    const endTime = Date.now();
+    const duration = Math.floor((endTime - (startTime || 0)) / 1000); // Tiempo en segundos
+
     const scoreRef = ref(db, `scores/${userId}`);
-    push(scoreRef, { score: finalScore, date: new Date().toISOString() });
+    push(scoreRef, { score: finalScore, time: duration, date: new Date().toISOString() });
   };
 
-  // Función para revelar una celda
   const revealCell = (row: number, col: number) => {
     const newBoard = [...board];
     const cell = newBoard[row][col];
@@ -83,17 +82,17 @@ const BuscaminasScreens: React.FC = () => {
     if (cell.revealed) return;
 
     if (cell.isMine) {
-      saveScore(score); // Guardar el puntaje antes de reiniciar
-      Alert.alert('¡Perdiste!', `Tu puntaje final fue ${score}`);
+      saveScore(score);
+      Alert.alert("¡Perdiste!", `Tu puntaje final fue ${score}`);
       setBoard(generateBoard(rows, cols, mines));
       setScore(0);
+      setStartTime(Date.now());
       return;
     }
 
     cell.revealed = true;
     setScore(score + 1);
 
-    // Descubrir celdas vecinas si no hay minas alrededor
     if (cell.neighboringMines === 0) {
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
@@ -110,8 +109,8 @@ const BuscaminasScreens: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={{ marginTop: '5%', flex: 1, backgroundColor: '#f0f0f0' }}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View>
         <Text style={styles.title}>Buscaminas</Text>
         <Text style={styles.score}>Puntaje: {score}</Text>
         <View style={styles.board}>
@@ -125,7 +124,7 @@ const BuscaminasScreens: React.FC = () => {
                 >
                   {cell.revealed && (
                     <Text style={styles.cellText}>
-                      {cell.isMine ? '💣' : cell.neighboringMines > 0 ? cell.neighboringMines : ''}
+                      {cell.isMine ? "💣" : cell.neighboringMines > 0 ? cell.neighboringMines : ""}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -141,50 +140,46 @@ const BuscaminasScreens: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontWeight: "bold",
+    color: "#4CAF50",
     marginBottom: 10,
   },
   score: {
     fontSize: 20,
-    fontWeight: '500',
-    color: '#333333',
+    color: "#333",
     marginBottom: 20,
   },
   board: {
     borderWidth: 2,
-    borderColor: '#4CAF50',
-    backgroundColor: '#ffffff',
+    borderColor: "#4CAF50",
+    backgroundColor: "#ffffff",
     borderRadius: 10,
-    overflow: 'hidden',
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   cell: {
     width: 40,
     height: 40,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderWidth: 1,
-    borderColor: '#cccccc',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#ccc",
+    alignItems: "center",
+    justifyContent: "center",
   },
   revealedCell: {
-    backgroundColor: '#bdbdbd',
-    borderColor: '#aaaaaa',
+    backgroundColor: "#bdbdbd",
+    borderColor: "#aaa",
   },
   cellText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
+    color: "#333",
   },
 });
 
