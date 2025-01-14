@@ -2,61 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { auth, db } from '../config/Config';
-import { onValue, ref } from 'firebase/database';
-<<<<<<< Updated upstream
+import { onValue, ref, update } from 'firebase/database';
 import { signOut } from 'firebase/auth';
 
-
-
 export default function PerfilScreen({ navigation }: any) {
-     const [correo, setCorreo] = useState("");
-     const [contrasenia, setContrasenia] = useState("");
-     const [nick, setNick] = useState("");
-     const [edad, setEdad] = useState("");
-     const [image, setImage] = useState<string | null>(null);
-     const [isModalVisible, setModalVisible] = useState(false); 
-  const [isEditing, setIsEditing] = useState(false); 
-  const [isLoading, setIsLoading] = useState(true); // Estado para indicar carga
-  const [userData, setUserData] = useState<any>(null); // Estado para los datos del usuario
-  
-  
-  const handleLogout = () => {
-    signOut(auth)
-        .then(() => {
-            Alert.alert("Sesión cerrada", "Has cerrado sesión exitosamente.");
-            navigation.navigate("Login"); // Redirige a la pantalla de login
-        })
-        .catch((error) => {
-            Alert.alert("Error", "No se pudo cerrar sesión. Por favor, intenta nuevamente.");
-        });
-  };
-=======
-import Icon from 'react-native-vector-icons/Ionicons';
-import { Ionicons } from '@expo/vector-icons';
-
-
-
-
-export default function PerfilScreen( ) {
-  const [correo, setCorreo] = useState("");
-  const [contrasenia, setContrasenia] = useState("");
-  const [nick, setNick] = useState("");
-  const [edad, setEdad] = useState("");
-  const [image, setImage] = useState<string | null>(null);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Estado para indicar carga
-  const [userData, setUserData] = useState<any>(null); // Estado para los datos del usuario
-
->>>>>>> Stashed changes
+  const [userData, setUserData] = useState<any>(null); // Datos del usuario
+  const [isEditing, setIsEditing] = useState(false); // Modo de edición
+  const [isLoading, setIsLoading] = useState(true); // Estado de carga
 
   useEffect(() => {
     const fetchUserData = () => {
       const user = auth.currentUser;
 
       if (user) {
-        const userRef = ref(db, `usuarios/${user.uid}`); // Referencia al nodo del usuario en Realtime Database
-
+        const userRef = ref(db, `usuarios/${user.uid}`);
         onValue(
           userRef,
           (snapshot) => {
@@ -66,7 +25,7 @@ export default function PerfilScreen( ) {
             } else {
               Alert.alert("Error", "No se encontraron datos del usuario.");
             }
-            setIsLoading(false); // Finaliza el estado de carga
+            setIsLoading(false);
           },
           (error) => {
             console.error("Error al leer los datos del usuario:", error);
@@ -83,104 +42,83 @@ export default function PerfilScreen( ) {
     fetchUserData();
   }, []);
 
-
-  const handleSave = () => {
-
-
-    Alert.alert('Éxito', 'Los datos se han actualizado correctamente');
-    setIsEditing(false);
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        Alert.alert("Sesión cerrada", "Has cerrado sesión exitosamente.");
+        navigation.navigate("Login");
+      })
+      .catch(() => {
+        Alert.alert("Error", "No se pudo cerrar sesión. Por favor, intenta nuevamente.");
+      });
   };
 
+  const handleSave = () => {
+    if (auth.currentUser) {
+      const userRef = ref(db, `usuarios/${auth.currentUser.uid}`);
+      update(userRef, userData)
+        .then(() => {
+          Alert.alert('Éxito', 'Los datos se han actualizado correctamente.');
+          setIsEditing(false);
+        })
+        .catch((error) => {
+          Alert.alert('Error', 'No se pudieron actualizar los datos: ' + error.message);
+        });
+    }
+  };
 
-  
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Cargando datos...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.titles}>Información del Registro</Text>
-
+      <Text style={styles.title}>Perfil</Text>
       {isEditing ? (
-
         <View>
           <TextInput
             style={styles.input}
-            placeholder="edad"
-            value={edad}
-            onChangeText={setEdad}
+            placeholder="Nombre"
+            value={userData?.nick || ''}
+            onChangeText={(text) => setUserData({ ...userData, nick: text })}
           />
           <TextInput
             style={styles.input}
-            placeholder="Nombre"
-            value={nick}
-            onChangeText={setNick}
+            placeholder="Edad"
+            value={userData?.edad || ''}
+            onChangeText={(text) => setUserData({ ...userData, edad: text })}
           />
           <TextInput
             style={styles.input}
             placeholder="Correo"
-            value={correo}
-            onChangeText={setCorreo}
+            value={userData?.correo || ''}
+            onChangeText={(text) => setUserData({ ...userData, correo: text })}
             keyboardType="email-address"
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            value={contrasenia}
-            onChangeText={setContrasenia}
-            secureTextEntry
-          />
-
           <TouchableOpacity style={styles.button} onPress={handleSave}>
             <Text style={styles.buttonText}>Guardar</Text>
           </TouchableOpacity>
         </View>
       ) : (
-
-<<<<<<< Updated upstream
-{/* Mostrar datos del perfil del usuario */}
-{userData ? (
-    <View style={styles.profileContainer}>
-        {/* Mostrar imagen del usuario si está disponible */}
-        {userData.image ? (
+        <View style={styles.profileContainer}>
+          {userData?.image ? (
             <Image source={{ uri: userData.image }} style={styles.profileImage} />
-        ) : (
-            <Icon name="person-circle-outline" size={100} color="#ccc" />
-        )}
-        <Text style={styles.profileText}>Nombre: {userData.nick}</Text>
-        <Text style={styles.profileText}>Correo: {userData.correo}</Text>
-        <Text style={styles.profileText}>edad: {userData.edad}</Text>
-    </View>
-) : (
-    <Text style={styles.errorText}>No se pudieron cargar los datos del usuario.</Text>
-)}
-=======
-        <View style={styles.result}>
-          {/* Mensaje de bienvenida */}
-          <Text style={styles.title}>Bienvenido</Text>
-
-          {/* Mostrar datos del perfil del usuario */}
-          {userData ? (
-            <View style={styles.profileContainer}>
-              {/* Mostrar imagen del usuario si está disponible */}
-              {userData.image ? (
-                <Image source={{ uri: userData.image }} style={styles.profileImage} />
-              ) : (
-                <Icon name="person-circle-outline" size={100} color="#ccc" />
-              )}
-              <Text style={styles.profileText}>Nombre: {userData.nombre}</Text>
-              <Text style={styles.profileText}>Correo: {userData.correo}</Text>
-              <Text style={styles.profileText}>Teléfono: {userData.telefono}</Text>
-            </View>
           ) : (
-            <Text style={styles.errorText}>No se pudieron cargar los datos del usuario.</Text>
+            <Icon name="person-circle-outline" size={100} color="#ccc" />
           )}
->>>>>>> Stashed changes
+          <Text style={styles.profileText}>Nombre: {userData?.nick || 'N/A'}</Text>
+          <Text style={styles.profileText}>Correo: {userData?.correo || 'N/A'}</Text>
+          <Text style={styles.profileText}>Edad: {userData?.edad || 'N/A'}</Text>
           <TouchableOpacity style={styles.button} onPress={() => setIsEditing(true)}>
             <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
-          
-          {/* Botón de cerrar sesión */}
           <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
-                <Icon name="log-out-outline" size={30} color="#4CAF50" />
-            </TouchableOpacity>
-
+            <Icon name="log-out-outline" size={30} color="#4CAF50" />
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -193,9 +131,15 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  titles: {
-    fontSize: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 32,
     fontWeight: 'bold',
+    color: '#4CAF50',
     marginBottom: 20,
   },
   input: {
@@ -223,33 +167,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  result: {
-    marginTop: 20,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    backgroundColor: '#f9f9f9',
-  }, loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-  },
-  logoutIcon: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    padding: 10,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 20,
-  },
   profileContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 20,
   },
   profileImage: {
@@ -260,12 +179,11 @@ const styles = StyleSheet.create({
   },
   profileText: {
     fontSize: 18,
-    color: "#333",
+    color: '#333',
     marginBottom: 10,
   },
-  errorText: {
-    fontSize: 16,
-    color: "#FF5252",
+  logoutIcon: {
     marginTop: 20,
+    alignItems: 'center',
   },
-})
+});
