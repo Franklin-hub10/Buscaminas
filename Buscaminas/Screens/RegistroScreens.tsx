@@ -63,7 +63,7 @@ export default function RegistroScreen({ navigation }: any) {
                 })
                     .then(() => {
                         Alert.alert("Registro exitoso", "Datos guardados correctamente.");
-                        navigation.navigate("juego");
+                        navigation.navigate("Juego");
                     })
                     .catch((error) => {
                         Alert.alert("Error", "No se pudieron guardar los datos: " + error.message);

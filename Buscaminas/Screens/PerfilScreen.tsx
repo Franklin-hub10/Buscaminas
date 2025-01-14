@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../config/Config';
 import { onValue, ref } from 'firebase/database';
-
+import { Ionicons } from "@expo/vector-icons";
 
 
 export default function PerfilScreen() {
