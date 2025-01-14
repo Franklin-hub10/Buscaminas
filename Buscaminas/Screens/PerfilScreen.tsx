@@ -37,10 +37,7 @@ export default function PerfilScreen({ navigation }: any) {
 
         <View>
 
-          {/* Botón de cerrar sesión */}
-          <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
-            <Icon name="log-out-outline" size={30} color="#4CAF50" />
-          </TouchableOpacity>
+
 
           <TextInput
             style={styles.input}
@@ -84,6 +81,11 @@ export default function PerfilScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Botón de cerrar sesión */}
+      <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
+        <Icon name="log-out-outline" size={30} color="#4CAF50" />
+      </TouchableOpacity>
     </View>
   );
 }
