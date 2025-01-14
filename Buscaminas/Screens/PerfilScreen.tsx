@@ -1,37 +1,81 @@
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../config/Config';
+import { onValue, ref } from 'firebase/database';
+
+
 
 export default function PerfilScreen() {
-  const [cedula, setCedula] = useState(''); 
-  const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [password, setPassword] = useState('');
+     const [correo, setCorreo] = useState("");
+     const [contrasenia, setContrasenia] = useState("");
+     const [nick, setNick] = useState("");
+     const [edad, setEdad] = useState("");
+     const [image, setImage] = useState<string | null>(null);
+     const [isModalVisible, setModalVisible] = useState(false); 
   const [isEditing, setIsEditing] = useState(false); 
+  const [isLoading, setIsLoading] = useState(true); // Estado para indicar carga
+  const [userData, setUserData] = useState<any>(null); // Estado para los datos del usuario
+  
+  
+  useEffect(() => {
+    const fetchUserData = () => {
+        const user = auth.currentUser;
 
+        if (user) {
+            const userRef = ref(db, `usuarios/${user.uid}`); // Referencia al nodo del usuario en Realtime Database
+
+            onValue(
+                userRef,
+                (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        setUserData(data);
+                    } else {
+                        Alert.alert("Error", "No se encontraron datos del usuario.");
+                    }
+                    setIsLoading(false); // Finaliza el estado de carga
+                },
+                (error) => {
+                    console.error("Error al leer los datos del usuario:", error);
+                    Alert.alert("Error", "No se pudieron cargar los datos del usuario.");
+                    setIsLoading(false);
+                }
+            );
+        } else {
+            Alert.alert("Error", "No hay un usuario autenticado.");
+            setIsLoading(false);
+        }
+    };
+
+    fetchUserData();
+}, []);
+
+  
   const handleSave = () => {
    
+    
     Alert.alert('Éxito', 'Los datos se han actualizado correctamente');
     setIsEditing(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Información del Registro</Text>
+      <Text style={styles.titles}>Información del Registro</Text>
       
       {isEditing ? (
         
         <View>
           <TextInput
             style={styles.input}
-            placeholder="Cédula"
-            value={cedula}
-            onChangeText={setCedula}
+            placeholder="edad"
+            value={edad}
+            onChangeText={setEdad}
           />
           <TextInput
             style={styles.input}
             placeholder="Nombre"
-            value={nombre}
-            onChangeText={setNombre}
+            value={nick}
+            onChangeText={setNick}
           />
           <TextInput
             style={styles.input}
@@ -43,10 +87,11 @@ export default function PerfilScreen() {
           <TextInput
             style={styles.input}
             placeholder="Contraseña"
-            value={password}
-            onChangeText={setPassword}
+            value={contrasenia}
+            onChangeText={setContrasenia}
             secureTextEntry
           />
+          
           <TouchableOpacity style={styles.button} onPress={handleSave}>
             <Text style={styles.buttonText}>Guardar</Text>
           </TouchableOpacity>
@@ -54,10 +99,25 @@ export default function PerfilScreen() {
       ) : (
         
         <View style={styles.result}>
-          <Text>Cédula: {cedula}</Text>
-          <Text>Nombre: {nombre}</Text>
-          <Text>Correo: {correo}</Text>
-          <Text>Contraseña: {password}</Text>
+         {/* Mensaje de bienvenida */}
+         <Text style={styles.title}>Bienvenido</Text>
+
+{/* Mostrar datos del perfil del usuario */}
+{userData ? (
+    <View style={styles.profileContainer}>
+        {/* Mostrar imagen del usuario si está disponible */}
+        {userData.image ? (
+            <Image source={{ uri: userData.image }} style={styles.profileImage} />
+        ) : (
+            <Icon name="person-circle-outline" size={100} color="#ccc" />
+        )}
+        <Text style={styles.profileText}>Nombre: {userData.nombre}</Text>
+        <Text style={styles.profileText}>Correo: {userData.correo}</Text>
+        <Text style={styles.profileText}>Teléfono: {userData.telefono}</Text>
+    </View>
+) : (
+    <Text style={styles.errorText}>No se pudieron cargar los datos del usuario.</Text>
+)}
           <TouchableOpacity style={styles.button} onPress={() => setIsEditing(true)}>
             <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
@@ -73,7 +133,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f5f5f5',
   },
-  title: {
+  titles: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
@@ -110,7 +170,44 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     backgroundColor: '#f9f9f9',
-  },
+  },loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+},
+logoutIcon: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    padding: 10,
+},
+title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#4CAF50",
+    marginBottom: 20,
+},
+profileContainer: {
+    alignItems: "center",
+    marginTop: 20,
+},
+profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
+},
+profileText: {
+    fontSize: 18,
+    color: "#333",
+    marginBottom: 10,
+},
+errorText: {
+    fontSize: 16,
+    color: "#FF5252",
+    marginTop: 20,
+},
 });
 
 
