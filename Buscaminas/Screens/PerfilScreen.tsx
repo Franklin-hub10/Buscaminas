@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { auth, db } from '../config/Config';
 import { onValue, ref } from 'firebase/database';
+import { signOut } from 'firebase/auth';
 
 
 
-export default function PerfilScreen() {
+export default function PerfilScreen({ navigation }: any) {
      const [correo, setCorreo] = useState("");
      const [contrasenia, setContrasenia] = useState("");
      const [nick, setNick] = useState("");
@@ -17,6 +19,17 @@ export default function PerfilScreen() {
   const [userData, setUserData] = useState<any>(null); // Estado para los datos del usuario
   
   
+  const handleLogout = () => {
+    signOut(auth)
+        .then(() => {
+            Alert.alert("Sesión cerrada", "Has cerrado sesión exitosamente.");
+            navigation.navigate("Login"); // Redirige a la pantalla de login
+        })
+        .catch((error) => {
+            Alert.alert("Error", "No se pudo cerrar sesión. Por favor, intenta nuevamente.");
+        });
+  };
+
   useEffect(() => {
     const fetchUserData = () => {
         const user = auth.currentUser;
@@ -58,6 +71,8 @@ export default function PerfilScreen() {
     setIsEditing(false);
   };
 
+
+  
   return (
     <View style={styles.container}>
       <Text style={styles.titles}>Información del Registro</Text>
@@ -111,9 +126,9 @@ export default function PerfilScreen() {
         ) : (
             <Icon name="person-circle-outline" size={100} color="#ccc" />
         )}
-        <Text style={styles.profileText}>Nombre: {userData.nombre}</Text>
+        <Text style={styles.profileText}>Nombre: {userData.nick}</Text>
         <Text style={styles.profileText}>Correo: {userData.correo}</Text>
-        <Text style={styles.profileText}>Teléfono: {userData.telefono}</Text>
+        <Text style={styles.profileText}>edad: {userData.edad}</Text>
     </View>
 ) : (
     <Text style={styles.errorText}>No se pudieron cargar los datos del usuario.</Text>
@@ -121,6 +136,12 @@ export default function PerfilScreen() {
           <TouchableOpacity style={styles.button} onPress={() => setIsEditing(true)}>
             <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
+          
+          {/* Botón de cerrar sesión */}
+          <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
+                <Icon name="log-out-outline" size={30} color="#4CAF50" />
+            </TouchableOpacity>
+
         </View>
       )}
     </View>
