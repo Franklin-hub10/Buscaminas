@@ -208,7 +208,4 @@ errorText: {
     color: "#FF5252",
     marginTop: 20,
 },
-});
-
-
-  
+})

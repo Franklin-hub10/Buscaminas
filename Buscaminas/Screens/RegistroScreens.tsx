@@ -1,52 +1,152 @@
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
-import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../config/Config';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, Modal, } from "react-native";
+import React, { useState } from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import * as ImagePicker from "expo-image-picker";
+import { ref, set } from "firebase/database";
+import { auth, db } from '../config/Config';
+
 
 export default function RegistroScreen({ navigation }: any) {
-    const [correo, setcorreo] = useState('');
-    const [contrasenia, setContrasenia] = useState('');
+    const [correo, setCorreo] = useState("");
+    const [contrasenia, setContrasenia] = useState("");
+    const [nick, setNick] = useState("");
+    const [edad, setEdad] = useState("");
+    const [image, setImage] = useState<string | null>(null);
+    const [isModalVisible, setModalVisible] = useState(false); // Estado para el modal
 
+    // Función para abrir la cámara
+    const openCamera = async () => {
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
 
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+        setModalVisible(false); // Cerrar el modal
+    };
+
+    // Función para abrir la galería
+    const openGallery = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+        setModalVisible(false); // Cerrar el modal
+    };
     function registro() {
+        if (!correo || !contrasenia || !nick || !edad || !image) {
+            Alert.alert("Error", "Por favor completa todos los campos, incluida la foto.");
+            return;
+        }
+
         createUserWithEmailAndPassword(auth, correo, contrasenia)
             .then((userCredential) => {
-                Alert.alert('Registro Exitoso', '¡Usuario registrado correctamente!');
-                navigation.navigate('Juego');
+                const user = userCredential.user;
+
+                // Guardar datos adicionales en Realtime Database
+                const userId = user.uid; // Obtén el UID del usuario
+                set(ref(db, `usuarios/${userId}`), {
+                    nick: nick,
+                    edad: edad,
+                    correo: correo,
+                    image: image,
+                })
+                    .then(() => {
+                        Alert.alert("Registro exitoso", "Datos guardados correctamente.");
+                        navigation.navigate("juego");
+                    })
+                    .catch((error) => {
+                        Alert.alert("Error", "No se pudieron guardar los datos: " + error.message);
+                    });
             })
             .catch((error) => {
                 const errorCode = error.code;
-                let mensaje;
+                let mensaje = "Ocurrió un error al registrarte.";
 
-                if (errorCode === 'auth/email-already-in-use') {
-                    mensaje = 'El correo ya está en uso. Intenta con otro.';
-                } else if (errorCode === 'auth/weak-password') {
-                    mensaje = 'La contraseña debe tener al menos 6 caracteres.';
-                } else {
-                    mensaje = 'Error al registrar. Verifica los datos ingresados.';
+                switch (errorCode) {
+                    case "auth/email-already-in-use":
+                        mensaje = "El correo ya está en uso. Por favor usa otro.";
+                        break;
+                    case "auth/invalid-email":
+                        mensaje = "El correo ingresado no es válido.";
+                        break;
+                    case "auth/weak-password":
+                        mensaje = "La contraseña debe tener al menos 6 caracteres.";
+                        break;
+                    default:
+                        mensaje = `Error: ${error.message}`;
+                        break;
                 }
 
-                Alert.alert('Error', mensaje);
+                Alert.alert("Error", mensaje);
+                limpiar()
             });
     }
+
     function limpiar() {
-        setcorreo('')
-        setContrasenia('') 
+
+        setNick('')
+        setCorreo("");
+        setContrasenia("");
+        setEdad("");
+        setImage('')
+
+
+
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Crear Cuenta</Text>
+            <Text style={styles.title}>Registro</Text>
+
+            {/* Mostrar imagen debajo del título "Registro" */}
+            {image && (
+                <View style={styles.imagePreviewContainer}>
+                    <Text style={styles.imagePreviewText}>Imagen seleccionada:</Text>
+                    <Image source={{ uri: image }} style={styles.image} />
+                </View>
+            )}
+
+            <TouchableOpacity
+                style={styles.selectImageButton}
+                onPress={() => setModalVisible(true)}
+            >
+                <Text style={styles.buttonText}>Seleccionar foto</Text>
+            </TouchableOpacity>
+
+            <TextInput
+                style={styles.input}
+                placeholder="Nick"
+                placeholderTextColor="#aaa"
+                onChangeText={(texto) => setNick(texto)}
+                autoCapitalize="words"
+            />
+
+            <TextInput
+                style={styles.input}
+                placeholder="Edad"
+                placeholderTextColor="#aaa"
+                onChangeText={(texto) => setEdad(texto)}
+                keyboardType="phone-pad"
+            />
 
             <TextInput
                 style={styles.input}
                 placeholder="Correo Electrónico"
                 placeholderTextColor="#aaa"
-                onChangeText={(texto) => setcorreo(texto)}
-                value={correo}
+                onChangeText={(texto) => setCorreo(texto)}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                
             />
 
             <TextInput
@@ -56,15 +156,40 @@ export default function RegistroScreen({ navigation }: any) {
                 onChangeText={(texto) => setContrasenia(texto)}
                 secureTextEntry={true}
                 autoCapitalize="none"
-                value={contrasenia}
             />
 
+            {/* Modal para elegir opción */}
+            <Modal
+                visible={isModalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Seleccionar Foto</Text>
+                        <TouchableOpacity style={styles.modalButton} onPress={openCamera}>
+                            <Text style={styles.buttonText}>Tomar foto</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.modalButton} onPress={openGallery}>
+                            <Text style={styles.buttonText}>Seleccionar de galería</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Text style={styles.buttonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
             <TouchableOpacity style={styles.button} onPress={registro}>
-                <Text style={styles.buttonText}>Registrar</Text>
+                <Text style={styles.buttonText}>Registrarse</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.registerText}>¿Ya tienes una cuenta? Inicia sesión aquí</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.registerText}>¿Ya tienes una cuenta? Inicia sesión</Text>
             </TouchableOpacity>
         </View>
     );
@@ -73,57 +198,105 @@ export default function RegistroScreen({ navigation }: any) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f9f9f9',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f0f0f0",
         padding: 20,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 30,
+        fontSize: 32,
+        fontWeight: "bold",
+        color: "#4CAF50",
+        marginBottom: 10,
     },
     input: {
         height: 50,
-        fontSize: 16,
-        backgroundColor: '#ffffff',
+        fontSize: 18,
+        backgroundColor: "#ffffff",
         marginVertical: 10,
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        width: '100%',
+        borderRadius: 10,
+        paddingHorizontal: 20,
+        width: "100%",
         borderWidth: 1,
-        borderColor: '#ddd',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 2,
+        borderColor: "#ccc",
     },
     button: {
         marginTop: 20,
-        backgroundColor: '#4CAF50',
-        borderRadius: 8,
-        width: '100%',
+        backgroundColor: "#4CAF50",
+        borderRadius: 10,
+        width: "100%",
         height: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3,
-        elevation: 3,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    selectImageButton: {
+        backgroundColor: "#4CAF50",
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        marginVertical: 10,
     },
     buttonText: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#ffffff',
+        fontWeight: "bold",
+        color: "#ffffff",
+        textAlign: "center",
     },
     registerText: {
-        marginTop: 15,
+        marginTop: 10,
         fontSize: 16,
-        color: '#4CAF50',
-        textDecorationLine: 'underline',
+        color: "#4CAF50",
+        textDecorationLine: "underline",
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    modalContent: {
+        backgroundColor: "#fff",
+        width: "80%",
+        borderRadius: 10,
+        padding: 20,
+        alignItems: "center",
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 20,
+        color: "#333",
+    },
+    modalButton: {
+        backgroundColor: "#4CAF50",
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        marginVertical: 10,
+        width: "100%",
+        alignItems: "center",
+    },
+    closeButton: {
+        backgroundColor: "#FF5252",
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        marginTop: 10,
+        width: "100%",
+        alignItems: "center",
+    },
+    imagePreviewContainer: {
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    imagePreviewText: {
+        fontSize: 16,
+        color: "#333",
+        marginBottom: 10,
+    },
+    image: {
+        width: 150,
+        height: 150,
+        borderRadius: 100,
     },
 });
-
